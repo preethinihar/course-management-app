@@ -37,4 +37,22 @@ This project connects a **React frontend** with a **Spring Boot backend** and pe
 ---
 
 ## 📂 Project Structure
+course-management-app
+├── backend # Spring Boot API
+└── frontend # React UI
+
+---
+
+## ▶️ Run Backend
+
+Requirements:
+- Java installed
+- Maven installed
+- PostgreSQL running
+
+Inside backend folder:
+
+```bash
+mvn spring-boot:run
+
 
