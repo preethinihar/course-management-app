@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Courses App</title>
+
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    body { font-family: Arial; background:#f5f7fb; }
+    .box { width:380px; margin:50px auto; padding:25px;
+           background:white; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,.08); }
+    input { width:100%; padding:10px; margin-top:10px; border-radius:6px; border:1px solid #ddd; }
+    button { margin-top:12px; padding:10px 15px; border:none; background:#4c79ff; color:white; border-radius:6px; cursor:pointer; }
+    button:hover { background:#3457ff; }
+    ul { padding:0; }
+    li { list-style:none; background:#eef1ff; margin-top:6px; padding:8px; border-radius:6px; }
+  </style>
+</head>
+
+<body>
+  <div id="app"></div>
+
+  <script type="text/babel">
+
+function Login({ onLogin }) {
+  const [username,setUsername]=React.useState("");
+  const [password,setPassword]=React.useState("");
+  const [message,setMessage]=React.useState("");
+
+  async function submit(){
+    const res = await fetch("http://localhost:8080/auth/login",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({username,password})
+    });
+
+    const text = await res.text();
+
+    if(text === "LOGIN_OK"){
+      onLogin(username);
+    } else {
+      setMessage("Invalid username or password");
+    }
+  }
+
+  return (
+    <div className="box">
+      <h2>Login</h2>
+
+      <input placeholder="Username" value={username} onChange={e=>setUsername(e.target.value)} />
+      <input placeholder="Password" type="password" value={password} onChange={e=>setPassword(e.target.value)} />
+
+      <button onClick={submit}>Login</button>
+
+      <p style={{color:"red"}}>{message}</p>
+    </div>
+  );
+}
+
+function Dashboard({ username }) {
+  const [courses,setCourses]=React.useState([]);
+  const [title,setTitle]=React.useState("");
+  const [instructor,setInstructor]=React.useState("");
+
+  async function load(){
+    const r=await fetch("http://localhost:8080/api/courses");
+    setCourses(await r.json());
+  }
+
+  async function add(){
+    await fetch("http://localhost:8080/api/courses",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({title,instructor})
+    });
+    setTitle("");
+    setInstructor("");
+    load();
+  }
+
+  React.useEffect(()=>{ load(); },[]);
+
+  return (
+    <div className="box">
+      <h3>Welcome, {username}</h3>
+
+      <input placeholder="Course Title" value={title} onChange={e=>setTitle(e.target.value)} />
+      <input placeholder="Instructor" value={instructor} onChange={e=>setInstructor(e.target.value)} />
+
+      <button onClick={add}>Add Course</button>
+
+      <ul>
+        {courses.map(c => <li key={c.id}>{c.title} — {c.instructor}</li>)}
+      </ul>
+    </div>
+  );
+}
+
+function App(){
+  const [user,setUser]=React.useState(null);
+
+  return user
+    ? <Dashboard username={user}/>
+    : <Login onLogin={name=>setUser(name)} />;
+}
+
+ReactDOM.createRoot(document.getElementById("app")).render(<App/>);
+
+  </script>
+</body>
+</html>
